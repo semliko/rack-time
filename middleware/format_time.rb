@@ -1,3 +1,5 @@
+require_relative '../lib/time_formater'
+
 class FormatTime
 
   VALID_TIME_FORMATS = { "%G" => "year",  "%m" => "month", "%d" => "day", "%H" => "hour", "%M" => "minute", "%S" => "second" }
@@ -16,7 +18,6 @@ class FormatTime
 
   private
 
-
   def build_response
     if errors?
       error_response
@@ -27,15 +28,15 @@ class FormatTime
 
   def errors?
     [
-      valid_request?,
-      @time_formater.valid_time_format?
-    ].include?(false)
+      invalid_request?,
+      @time_formater.format_error?
+    ].include?(true)
   end
 
   def error_response
-    if !valid_request?
+    if invalid_request?
       @status = 404
-    elsif !@time_formater.valid_time_format?
+    elsif @time_formater.format_error?
       @status = 400
       @body = ["Unknown time format #{@time_formater.invalid_formats}\n"]
     end
@@ -43,56 +44,20 @@ class FormatTime
 
   def formated_time_response
     @status = 200
-    @body = ["#{formated_time}\n"]
+    @body = ["#{@time_formater.formated_time}\n"]
   end
-
-  #  def invalid_formats
-  #    time_format - VALID_TIME_FORMATS.values
-  #  end
 
   def request_time_format
     @request.params['format']&.split(',')
   end
 
-  #def valid_time_format?
-  #  time_format&.all? { |e| VALID_TIME_FORMATS.values.include?(e) }
-  #end
-
-  def valid_request?
-    @request.get? && @request.path == '/time'
+  def invalid_request?
+    [
+      @request.get?,
+      @request.path == '/time'
+    ].include?(false)
   end
-
-  #def formated_time
-  #  ordered_time_parameters = []
-  #  time_format.each do |f|
-  #    ordered_time_parameters << VALID_TIME_FORMATS.key(f)
-  #  end
-  #  Time.now.strftime(ordered_time_parameters.join('-'))
-  #end
 
 end
 
 
-class TimeFormater
-
-  VALID_TIME_FORMATS = { "%G" => "year",  "%m" => "month", "%d" => "day", "%H" => "hour", "%M" => "minute", "%S" => "second" }
-  def initialize(time_format)
-    @time_format = time_format
-  end
-
-  def formated_time
-    ordered_time_parameters = []
-    @time_format.each do |f|
-      ordered_time_parameters << VALID_TIME_FORMATS.key(f)
-    end
-    Time.now.strftime(ordered_time_parameters.join('-'))
-  end
-
-  def valid_time_format?
-    @time_format&.all? { |e| VALID_TIME_FORMATS.values.include?(e) }
-  end
-
-  def invalid_formats
-    @time_format - VALID_TIME_FORMATS.values
-  end
-end
