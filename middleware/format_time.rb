@@ -36,6 +36,7 @@ class FormatTime
   def error_response
     if invalid_request?
       @status = 404
+      @body = ["Error\n"]
     elsif @time_formater.format_error?
       @status = 400
       @body = ["Unknown time format #{@time_formater.invalid_formats}\n"]
