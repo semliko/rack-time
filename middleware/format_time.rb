@@ -8,28 +8,38 @@ class FormatTime
 
   def call(env)
     status, headers, body = @app.call(env)
-    response(status, headers, body, env)
+    build_response(env)
   end
 
   private
 
-  def response(status, headers, body, env)
-    request = Rack::Request.new(env)
-    request_time_format = request.params['format']&.split(',')
-    time_formater = TimeFormater.new
-    time_formater.call(request_time_format)
+  def build_response(params)
+    request = Rack::Request.new(params)
 
     if invalid_request?(request)
-      status = 404
-      body = ["Error\n"]
-    elsif time_formater.format_error
-      status = 400
-      body = ["Unknown time format #{time_formater.invalid_formats}\n"]
+      response(404, 'invalid path')
     else
-      status = 200
-      body = ["#{time_formater.format_time}\n"]
+      handle_request(request)
     end
-    [status, headers, body]
+  end
+
+  def handle_request(request)
+    request_time_format = request.params['format']&.split(',')
+    time_formater = TimeFormater.new(request_time_format)
+    time_formater.call
+    if time_formater.success?
+      response(200, time_formater.format_time)
+    else
+      response(400, time_formater.invalid_formats)
+    end
+  end
+
+  def response(status, body)
+    [
+      status,
+      { "Content-Type" => "text/plain" },
+      ["#{body}\n"]
+    ]
   end
 
   def invalid_request?(request)
