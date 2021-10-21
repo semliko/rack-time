@@ -30,7 +30,7 @@ class FormatTime
     if time_formater.success?
       response(200, time_formater.format_time)
     else
-      response(400, "Unknown time format #{time_formater.invalid_formats}")
+      response(400, "Unknown time format #{time_formater.invalid_formats}\n")
     end
   end
 
