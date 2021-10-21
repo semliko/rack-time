@@ -1,7 +1,5 @@
 class TimeFormater
 
-  attr_reader :invalid_formats
-
   VALID_TIME_FORMATS = { "%G" => "year",  "%m" => "month", "%d" => "day", "%H" => "hour", "%M" => "minute", "%S" => "second" }
 
   def initialize(time_format)
@@ -27,6 +25,10 @@ class TimeFormater
 
   def success?
     invalid_formats.empty?
+  end
+
+  def invalid_formats
+    @invalid_formats
   end
 
 end
